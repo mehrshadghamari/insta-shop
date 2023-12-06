@@ -7,8 +7,11 @@ from apps.panel.models import Shop
 from apps.panel.models import Subscription
 from apps.panel.serializers import ShopSerializer
 
+from .schemas import shop_detail_view_schema
+
 
 class ShopDetailView(APIView):
+    @shop_detail_view_schema
     def get(self, request, domain):
         shop = (
             Shop.objects.filter(domain=domain)
