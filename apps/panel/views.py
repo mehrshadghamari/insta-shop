@@ -3,16 +3,24 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+
 from apps.panel.models import PaymentInfo
 from apps.panel.models import Shop
 from apps.panel.models import ShopInfo
 from apps.panel.models import Subscription
+from apps.panel.models import User
+from apps.panel.models import ShopUser
+
+
 from apps.panel.serializers import PaymentInfoSerializer
 from apps.panel.serializers import ShopInfoDetailSerializer
 from apps.panel.serializers import ShopInfoSerializer
 from apps.panel.serializers import ShopPaymentDetailSerializer
 from apps.panel.serializers import ShopSubscriptionDetailSerializer
+from apps.panel.serializers import ShopUserSerializer
+
 from apps.panel.permisions import IsShopManager 
+
 
 from .schemas import create_payment_info_schema
 from .schemas import create_shop_info_schema
@@ -23,6 +31,14 @@ from .schemas import shop_subscription_detail_view_schema
 from .schemas import update_payment_info_schema
 from .schemas import update_shop_info_schema
 
+
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 class ShopDetailView(APIView):
     @shop_detail_view_schema
@@ -128,3 +144,48 @@ class UpdatePaymentInfoView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+ ### shop panel login 
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    # Customizing JWt token claims
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token['phone_number'] = user.phone_number
+        return token
+    
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
+
+
+def get_tokens_for_user(user):
+    refresh = MyTokenObtainPairSerializer.get_token(user)
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
+
+class ShopPanelLogin(APIView):
+    def post(self, request):
+        phone_number = request.data['phone_number']
+        password = request.data['password']
+        try:
+            user = User.objects.get(phone_number=phone_number)
+        except User.DoesNotExist:
+            return Response({'message': 'شماره تلفن وارد شده معتبر نمیباشد'} , status=status.HTTP_400_BAD_REQUEST)
+
+        if not user.check_password(password) :
+            return Response({"massage": "رمز عبور وارد شده صحیح نمیباشد"}, status=status.HTTP_400_BAD_REQUEST)
+
+        user_shops = ShopUser.objects.filter(user = user.id)
+
+        if not user_shops : 
+            return Response({"massage": "هیچ فروشگاهی به نام شما ثبت نشده است"}, status=status.HTTP_400_BAD_REQUEST)
+         
+        shop_serializer = ShopUserSerializer(user_shops , many=True).data
+        token = get_tokens_for_user(user)
+
+        return Response({"token": token, "shops" : shop_serializer}, status=status.HTTP_201_CREATED)

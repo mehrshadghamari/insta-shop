@@ -11,4 +11,5 @@ urlpatterns = [
     path("shop-info/update/<int:pk>/", views.UpdateShopInfoView.as_view(), name="update-shop-info"),
     path("payment-info/create/", views.CreatePaymentInfoView.as_view(), name="create-payment-info"),
     path("payment-info/update/<int:pk>/", views.UpdatePaymentInfoView.as_view(), name="update-payment-info"),
+    path("shop/login/", views.ShopPanelLogin.as_view(), name="panel-login"),
 ]
