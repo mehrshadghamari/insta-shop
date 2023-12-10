@@ -12,6 +12,7 @@ from apps.panel.serializers import ShopInfoDetailSerializer
 from apps.panel.serializers import ShopInfoSerializer
 from apps.panel.serializers import ShopPaymentDetailSerializer
 from apps.panel.serializers import ShopSubscriptionDetailSerializer
+from apps.panel.permisions import IsShopManager 
 
 from .schemas import create_payment_info_schema
 from .schemas import create_shop_info_schema
@@ -25,9 +26,9 @@ from .schemas import update_shop_info_schema
 
 class ShopDetailView(APIView):
     @shop_detail_view_schema
-    def get(self, request, domain):
+    def get(self, request):
         shop = (
-            Shop.objects.filter(domain=domain)
+            Shop.objects.filter(id=request.shop)
             .select_related("info")
             .prefetch_related(
                 "payment_set", Prefetch("subscription_set", queryset=Subscription.objects.select_related("type"))
@@ -43,10 +44,10 @@ class ShopDetailView(APIView):
 
 
 class ShopInfoDetailView(APIView):
+    # permission_classes = [IsShopManager]
     @shop_info_detail_view_schema
-    def get(self, request, domain):
-        shop = Shop.objects.filter(domain=domain).select_related("info").first()
-
+    def get(self, request):
+        shop = Shop.objects.filter(id=request.shop).select_related("info").first()
         if not shop:
             return Response({"error": "Shop not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -56,8 +57,8 @@ class ShopInfoDetailView(APIView):
 
 class ShopPaymentDetailView(APIView):
     @shop_payment_detail_view_schema
-    def get(self, request, domain):
-        shop = Shop.objects.filter(domain=domain).prefetch_related("payment_set").first()
+    def get(self, request):
+        shop = Shop.objects.filter(id=request.shop).prefetch_related("payment_set").first()
 
         if not shop:
             return Response({"error": "Shop not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -68,8 +69,8 @@ class ShopPaymentDetailView(APIView):
 
 class ShopSubscriptionDetail(APIView):
     @shop_subscription_detail_view_schema
-    def get(self, request, domain):
-        shop = Shop.objects.filter(domain=domain).prefetch_related(
+    def get(self, request):
+        shop = Shop.objects.filter(id=request.shop).prefetch_related(
             "payment_set", Prefetch("subscription_set", queryset=Subscription.objects.select_related("type"))
         )
         if not shop:
