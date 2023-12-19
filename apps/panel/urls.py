@@ -8,8 +8,8 @@ urlpatterns = [
     path("shop-payment/", views.ShopPaymentDetailView.as_view(), name="shop-payment-detail"),
     path("shop-subscription/", views.ShopSubscriptionDetail.as_view(), name="shop-subscription-detail"),
     path("shop-info/create/", views.CreateShopInfoView.as_view(), name="create-shop-info"),
-    path("shop-info/update/<int:pk>/", views.UpdateShopInfoView.as_view(), name="update-shop-info"),
+    path("shop-info/update/", views.UpdateShopInfoView.as_view(), name="update-shop-info"),
     path("payment-info/create/", views.CreatePaymentInfoView.as_view(), name="create-payment-info"),
-    path("payment-info/update/<int:pk>/", views.UpdatePaymentInfoView.as_view(), name="update-payment-info"),
+    path("payment-info/update/", views.UpdatePaymentInfoView.as_view(), name="update-payment-info"),
     path("shop/login/", views.ShopPanelLogin.as_view(), name="panel-login"),
 ]

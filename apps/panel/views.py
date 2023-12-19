@@ -11,6 +11,7 @@ from apps.panel.models import ShopInfo
 from apps.panel.models import ShopUser
 from apps.panel.models import Subscription
 from apps.panel.models import User
+from apps.panel.permisions import IsShopManager
 from apps.panel.serializers import PaymentInfoSerializer
 from apps.panel.serializers import ShopInfoDetailSerializer
 from apps.panel.serializers import ShopInfoSerializer
@@ -29,10 +30,12 @@ from .schemas import update_shop_info_schema
 
 
 class ShopDetailView(APIView):
+    permission_classes = [IsShopManager]
+
     @shop_detail_view_schema
     def get(self, request):
         shop = (
-            Shop.objects.filter(id=request.shop)
+            Shop.objects.filter(id=request.shop.id)
             .select_related("info")
             .prefetch_related(
                 "payment_set", Prefetch("subscription_set", queryset=Subscription.objects.select_related("type"))
@@ -48,10 +51,11 @@ class ShopDetailView(APIView):
 
 
 class ShopInfoDetailView(APIView):
-    # permission_classes = [IsShopManager]
+    permission_classes = [IsShopManager]
+
     @shop_info_detail_view_schema
     def get(self, request):
-        shop = Shop.objects.filter(id=request.shop).select_related("info").first()
+        shop = Shop.objects.filter(id=request.shop.id).select_related("info").first()
         if not shop:
             return Response({"error": "Shop not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -60,9 +64,11 @@ class ShopInfoDetailView(APIView):
 
 
 class ShopPaymentDetailView(APIView):
+    permission_classes = [IsShopManager]
+
     @shop_payment_detail_view_schema
     def get(self, request):
-        shop = Shop.objects.filter(id=request.shop).prefetch_related("payment_set").first()
+        shop = Shop.objects.filter(id=request.shop.id).prefetch_related("payment_set").first()
 
         if not shop:
             return Response({"error": "Shop not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -72,9 +78,11 @@ class ShopPaymentDetailView(APIView):
 
 
 class ShopSubscriptionDetail(APIView):
+    permission_classes = [IsShopManager]
+
     @shop_subscription_detail_view_schema
     def get(self, request):
-        shop = Shop.objects.filter(id=request.shop).prefetch_related(
+        shop = Shop.objects.filter(id=request.shop.id).prefetch_related(
             "payment_set", Prefetch("subscription_set", queryset=Subscription.objects.select_related("type"))
         )
         if not shop:
@@ -85,6 +93,8 @@ class ShopSubscriptionDetail(APIView):
 
 
 class CreateShopInfoView(APIView):
+    permission_classes = [IsShopManager]
+
     @create_shop_info_schema
     def post(self, request):
         serializer = ShopInfoSerializer(data=request.data)
@@ -95,10 +105,12 @@ class CreateShopInfoView(APIView):
 
 
 class UpdateShopInfoView(APIView):
+    permission_classes = [IsShopManager]
+
     @update_shop_info_schema
-    def put(self, request, pk):
+    def patch(self, request):
         try:
-            shop_info = ShopInfo.objects.get(pk=pk)
+            shop_info = ShopInfo.objects.get(shop=request.shop.id)
         except ShopInfo.DoesNotExist:
             return Response({"error": "ShopInfo not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -110,6 +122,8 @@ class UpdateShopInfoView(APIView):
 
 
 class CreatePaymentInfoView(APIView):
+    permission_classes = [IsShopManager]
+
     @create_payment_info_schema
     def post(self, request):
         serializer = PaymentInfoSerializer(data=request.data)
@@ -120,10 +134,12 @@ class CreatePaymentInfoView(APIView):
 
 
 class UpdatePaymentInfoView(APIView):
+    permission_classes = [IsShopManager]
+
     @update_payment_info_schema
-    def put(self, request, pk):
+    def patch(self, request):
         try:
-            payment_info = PaymentInfo.objects.get(pk=pk)
+            payment_info = PaymentInfo.objects.get(shop=request.shop.id)
         except PaymentInfo.DoesNotExist:
             return Response({"error": "PaymentInfo not found"}, status=status.HTTP_404_NOT_FOUND)
 

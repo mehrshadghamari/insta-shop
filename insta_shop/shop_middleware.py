@@ -1,3 +1,6 @@
+from apps.panel.models import Shop
+
+
 class ShopParamMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
@@ -9,6 +12,6 @@ class ShopParamMiddleware:
         # Set the custom variable in the request object
         if shop_id is not None:
             # Set the custom variable in the request object
-            request.shop = shop_id
+            request.shop = Shop.objects.get(id=shop_id)
         response = self.get_response(request)
         return response

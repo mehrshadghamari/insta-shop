@@ -34,6 +34,16 @@ class ShopInfoSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class UpdateShopInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ShopInfo
+        exculde = [
+            "id",
+            "shop",
+            "instagram_page",
+        ]
+
+
 class ShopDetailSerializer(serializers.ModelSerializer):
     info = ShopInfoSerializer()
     payment = PaymentInfoSerializer(
