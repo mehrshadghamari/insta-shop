@@ -3,6 +3,7 @@ from rest_framework import serializers
 from apps.panel.models import PaymentInfo
 from apps.panel.models import Shop
 from apps.panel.models import ShopInfo
+from apps.panel.models import ShopUser
 from apps.panel.models import Subscription
 from apps.panel.models import SubscriptionType
 
@@ -91,3 +92,9 @@ class ShopSubscriptionDetailSerializer(serializers.ModelSerializer):
             "domain",
             "subscription",
         ]
+
+
+class ShopUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ["shop"]
+        model = ShopUser

@@ -56,8 +56,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    # custom middleware
-    "apps.panel.middleware.ShopMiddleware",
+    "insta_shop.shop_middleware.ShopParamMiddleware",
 ]
 
 ROOT_URLCONF = "insta_shop.urls"
