@@ -18,6 +18,8 @@ from apps.panel.serializers import ShopInfoSerializer
 from apps.panel.serializers import ShopPaymentDetailSerializer
 from apps.panel.serializers import ShopSubscriptionDetailSerializer
 from apps.panel.serializers import ShopUserSerializer
+from apps.panel.serializers import UpdateShopInfoSerializer
+
 
 from .schemas import create_payment_info_schema
 from .schemas import create_shop_info_schema
@@ -105,7 +107,7 @@ class CreateShopInfoView(APIView):
 
 
 class UpdateShopInfoView(APIView):
-    permission_classes = [IsShopManager]
+    # permission_classes = [IsShopManager]
 
     @update_shop_info_schema
     def patch(self, request):
@@ -114,7 +116,8 @@ class UpdateShopInfoView(APIView):
         except ShopInfo.DoesNotExist:
             return Response({"error": "ShopInfo not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = ShopInfoSerializer(shop_info, data=request.data)
+        serializer = UpdateShopInfoSerializer(shop_info, data=request.data)
+        
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

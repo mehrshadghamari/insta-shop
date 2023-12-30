@@ -37,10 +37,10 @@ class ShopInfoSerializer(serializers.ModelSerializer):
 class UpdateShopInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShopInfo
-        exculde = [
-            "id",
-            "shop",
-            "instagram_page",
+        fields = [
+            "web_color",
+            'name' , 
+            'description'
         ]
 
 
