@@ -43,3 +43,7 @@ class ProductVariant(TimeStampedModel):
         else:
             final_price = float(self.price - (self.price * self.discount / 100))
         return final_price
+
+
+class ImageModel(models.Model):
+    image = models.ImageField()

@@ -8,11 +8,11 @@ repos:
     - id: shell-lint
       args: ['--exclude','SC1090,SC2046,SC2005,SC2035,SC2086']
 
-  - repo: https://github.com/myint/autoflake
-    rev: v1.4
-    hooks:
-    - id: autoflake
-      args: ["--remove-all-unused-imports", "--recursive", "--in-place", "{{args}}", "."]
+  # - repo: https://github.com/myint/autoflake
+  #   rev: v1.4
+  #   hooks:
+  #   - id: autoflake
+  #     args: ["--remove-all-unused-imports", "--recursive", "--in-place", "{{args}}", "."]
 
   - repo: https://github.com/timothycrosley/isort
     rev: 5.12.0

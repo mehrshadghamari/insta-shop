@@ -37,11 +37,7 @@ class ShopInfoSerializer(serializers.ModelSerializer):
 class UpdateShopInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShopInfo
-        fields = [
-            "web_color",
-            'name' , 
-            'description'
-        ]
+        fields = ["web_color", "name", "description"]
 
 
 class ShopDetailSerializer(serializers.ModelSerializer):

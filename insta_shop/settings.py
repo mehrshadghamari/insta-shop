@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     # apps
     "apps.panel",
+    "apps.shop",
 ]
 
 CORS_ALLOWED_ORIGINS = [
