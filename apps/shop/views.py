@@ -61,7 +61,7 @@ class GetFromInsta(APIView):
             return Response({"error": "No images found in the Instagram post"}, status=status.HTTP_404_NOT_FOUND)
 
         with transaction.atomic():
-            product = Product.objects.create(shop=shop, name=f"From Instagram - {username}", description=caption)
+            product = Product.objects.create(shop=shop.id, name=f"From Instagram - {username}", description=caption)
             self.save_images_to_database(images, username, product)
 
         return Response(formatted_response, status=status.HTTP_200_OK)
