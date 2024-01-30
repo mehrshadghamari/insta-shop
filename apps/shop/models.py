@@ -9,8 +9,9 @@ from apps.panel.models import Shop
 from apps.panel.models import TimeStampedModel
 
 
-class Product(TimeStampedModel):
+class Post(TimeStampedModel):
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE, related_name="products")
+    insta_url = models.URLField()
 
     name = models.CharField(max_length=64)
     description = models.TextField(null=True, blank=True)
@@ -23,10 +24,6 @@ class Product(TimeStampedModel):
     )
 
     @property
-    def options(self):
-        return self.options.all()
-
-    @property
     def all_image(self):
         return self.images.all()
 
@@ -34,19 +31,35 @@ class Product(TimeStampedModel):
         return f"id : {self.id} -- name : {self.name} "
 
 
-class ProductOptionType(TimeStampedModel):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, related_name="options")
-    name = models.CharField(max_length=127, null=True, blank=True)
-    no_option = models.BooleanField(default=False)
+
+class Product(TimeStampedModel):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="products")
+    name = models.CharField(max_length=127)
+
 
     @property
-    def product_variant(self):
+    def options(self):
+        return self.option_types.all()
+
+    def __str__(self):
+        return f"id : {self.id} -- name : {self.name} "
+
+
+class ProductOptionType(TimeStampedModel):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="option_types")
+    name = models.CharField(max_length=127)  # e.g., "color", "size"
+
+    @property
+    def option_values(self):
         return self.values.all()
+
+    def __str__(self):
+        return self.name
 
 
 class ProductVariant(TimeStampedModel):
-    option = models.ForeignKey(ProductOptionType, on_delete=models.CASCADE, related_name="values")
-    option_value = models.CharField(max_length=127, null=True, blank=True)
+    option_type = models.ForeignKey(ProductOptionType, on_delete=models.CASCADE, related_name="values")
+    option_value = models.CharField(max_length=127)  # e.g., "red", "blue", "L", "XL"
     price = models.FloatField()
     discount = models.PositiveSmallIntegerField(default=0, validators=[MaxValueValidator(99), MinValueValidator(0)])
 
@@ -59,9 +72,18 @@ class ProductVariant(TimeStampedModel):
         return final_price
 
 
+    def __str__(self):
+        return self.value
+    
+
+
 class ImageModel(TimeStampedModel):
     image = models.ImageField()
 
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
     object_id = models.PositiveIntegerField(null=True, blank=True)
     content_object = GenericForeignKey("content_type", "object_id")
+
+
+
+
