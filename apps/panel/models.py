@@ -216,4 +216,4 @@ class Subscription(TimeStampedModel):
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return f" {Shop.name} subscription"
+        return f" {Shop.id} subscription"
