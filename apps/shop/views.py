@@ -151,6 +151,89 @@ class GetFromInsta(APIView):
         ]
 
 
+
+
+
+class PostList(APIView):
+    def get(self,request):
+        shop_id = request.shop.id
+        Post.objects.get(shop=shop_id)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # normal code
 
 # with transaction.atomic():
