@@ -31,11 +31,9 @@ class Post(TimeStampedModel):
         return f"id : {self.id} -- name : {self.name} "
 
 
-
 class Product(TimeStampedModel):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="products")
     name = models.CharField(max_length=127)
-
 
     @property
     def options(self):
@@ -71,10 +69,8 @@ class ProductVariant(TimeStampedModel):
             final_price = float(self.price - (self.price * self.discount / 100))
         return final_price
 
-
     def __str__(self):
-        return self.value
-    
+        return self.option_value
 
 
 class ImageModel(TimeStampedModel):
@@ -83,7 +79,3 @@ class ImageModel(TimeStampedModel):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
     object_id = models.PositiveIntegerField(null=True, blank=True)
     content_object = GenericForeignKey("content_type", "object_id")
-
-
-
-
