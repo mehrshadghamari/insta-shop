@@ -160,7 +160,7 @@ class PostList(APIView):
     def get(self, request):
         shop_id = request.shop.id
         query = Post.objects.filter(shop=shop_id).prefetch_related("images")
-        serializer = PostListSerializer(query, many=True)
+        serializer = PostListSerializer(query, many=True, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -188,7 +188,7 @@ class PostDetail(APIView):
 
         post = get_object_or_404(Post.objects.prefetch_related("images", product_prefetch), id=pk, shop=shop_id)
 
-        serializer = PostDetailSerializer(post)
+        serializer = PostDetailSerializer(post, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

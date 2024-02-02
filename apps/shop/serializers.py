@@ -8,13 +8,32 @@ from apps.shop.models import ProductVariant
 
 
 class ImageModelSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField("get_image_url")
+
+    def get_image_url(self, obj):
+        request = self.context.get("request")
+        image_url = obj.image.url
+        return request.build_absolute_uri(image_url)
+
     class Meta:
         model = ImageModel
-        fields = "__all__"
+        fields = (
+            "id",
+            "image",
+            "is_main",
+        )
 
 
 class PostListSerializer(serializers.ModelSerializer):
     all_image = ImageModelSerializer(many=True, read_only=True)
+    created_at = serializers.SerializerMethodField()
+    updated_at = serializers.SerializerMethodField()
+
+    def get_created_at(self, obj):
+        return int(obj.created_at.timestamp())
+
+    def get_updated_at(self, obj):
+        return int(obj.updated_at.timestamp())
 
     class Meta:
         model = Post
@@ -67,12 +86,25 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class PostDetailSerializer(serializers.ModelSerializer):
     prefetched_products = ProductSerializer(many=True, read_only=True)
+    all_image = ImageModelSerializer(many=True, read_only=True)
+    created_at = serializers.SerializerMethodField()
+    updated_at = serializers.SerializerMethodField()
+
+    def get_created_at(self, obj):
+        return int(obj.created_at.timestamp())
+
+    def get_updated_at(self, obj):
+        return int(obj.updated_at.timestamp())
 
     class Meta:
         model = Post
         fields = (
             "id",
+            "all_image",
+            "insta_url",
             "name",
             "description",
+            "created_at",
+            "updated_at",
             "prefetched_products",
         )
