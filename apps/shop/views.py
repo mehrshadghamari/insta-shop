@@ -5,6 +5,8 @@ from io import BytesIO
 import requests
 from django.core.files import File
 from django.db import transaction
+from django.db.models import Prefetch
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -14,12 +16,14 @@ from apps.shop.models import Post
 from apps.shop.models import Product
 from apps.shop.models import ProductOptionType
 from apps.shop.models import ProductVariant
+from apps.shop.serializers import PostDetailSerializer
+from apps.shop.serializers import PostListSerializer
 from helpers.functions import extract_shortcode
 from helpers.functions import fetch_instagram_data
 from helpers.functions import generate_unique_filename
 
 # Configure logging
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
 
 
 class GetFromInsta(APIView):
@@ -116,7 +120,8 @@ class GetFromInsta(APIView):
                     post_image.image.save(unique_filename, File(image_data))
                     post_image.save()
             except requests.RequestException as e:
-                logger.error(f"Failed to download image: {image_url}, Error: {e}")  # noqa : G004
+                pass
+                # logger.error(f"Failed to download image: {image_url}, Error: {e}")  # noqa : G004
 
         with ThreadPoolExecutor(max_workers=5) as executor:
             executor.map(save_image, images)
@@ -151,87 +156,40 @@ class GetFromInsta(APIView):
         ]
 
 
-
-
-
 class PostList(APIView):
-    def get(self,request):
+    def get(self, request):
         shop_id = request.shop.id
-        Post.objects.get(shop=shop_id)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        query = Post.objects.filter(shop=shop_id).prefetch_related("images")
+        serializer = PostListSerializer(query, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class PostDetail(APIView):
+    def get(self, request, pk):
+        shop_id = request.shop.id
+
+        product_variant_prefetch = Prefetch(
+            "values",
+            queryset=ProductVariant.objects.all(),
+            to_attr="prefetched_product_variants",
+        )
+
+        product_option_type_prefetch = Prefetch(
+            "option_types",
+            queryset=ProductOptionType.objects.prefetch_related(product_variant_prefetch),
+            to_attr="prefetched_option_types",
+        )
+
+        product_prefetch = Prefetch(
+            "products",
+            queryset=Product.objects.filter(post=pk).prefetch_related(product_option_type_prefetch),
+            to_attr="prefetched_products",
+        )
+
+        post = get_object_or_404(Post.objects.prefetch_related("images", product_prefetch), id=pk, shop=shop_id)
+
+        serializer = PostDetailSerializer(post)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 # normal code

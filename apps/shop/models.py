@@ -76,7 +76,6 @@ class ProductVariant(TimeStampedModel):
 class ImageModel(TimeStampedModel):
     image = models.ImageField()
     is_main = models.BooleanField(default=False)
-    
 
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
     object_id = models.PositiveIntegerField(null=True, blank=True)
