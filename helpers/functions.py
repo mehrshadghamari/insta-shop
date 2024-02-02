@@ -30,4 +30,4 @@ def fetch_instagram_data(shortcode):
 
 def generate_unique_filename(username):
     """Generate a unique file name for an image."""
-    return f"image_{username}_{uuid.uuid4().hex}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
+    return f"image-shop:{username}-imgID:{uuid.uuid4().hex}-time:{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"

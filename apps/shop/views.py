@@ -67,8 +67,8 @@ class GetFromInsta(APIView):
                 "profile_pic_url": user_info.get("profile_pic_url", ""),
             },
             "caption": data.get("caption", {}).get("text", ""),
-            "location": data.get("location", {}).get("name", ""),
-            "like_count": data.get("like_count", None),
+            # "location": data.get("location", {}).get("name", ""),
+            # "like_count": data.get("like_count", None),
             "images": images,
         }
 
@@ -110,21 +110,20 @@ class GetFromInsta(APIView):
         ProductVariant.objects.bulk_create(all_variants)
 
     def save_images_to_database(self, images, post):
-        def save_image(image_url):
+        for i,image_url in enumerate(images):
+            is_main =True if i==0 else False 
             try:
                 response = requests.get(image_url, timeout=15)  # timeout in seconds
                 if response.status_code == 200:
                     image_data = BytesIO(response.content)
                     unique_filename = generate_unique_filename(post.name)
-                    post_image = ImageModel(content_object=post)
+                    post_image = ImageModel(content_object=post,is_main=is_main)
                     post_image.image.save(unique_filename, File(image_data))
                     post_image.save()
             except requests.RequestException as e:
                 pass
                 # logger.error(f"Failed to download image: {image_url}, Error: {e}")  # noqa : G004
 
-        with ThreadPoolExecutor(max_workers=5) as executor:
-            executor.map(save_image, images)
 
     def get_dummy_variants(self):
         # Replace this method with actual logic to fetch or create variants
@@ -171,19 +170,19 @@ class PostDetail(APIView):
         product_variant_prefetch = Prefetch(
             "values",
             queryset=ProductVariant.objects.all(),
-            to_attr="prefetched_product_variants",
+            to_attr="variants",
         )
 
         product_option_type_prefetch = Prefetch(
             "option_types",
             queryset=ProductOptionType.objects.prefetch_related(product_variant_prefetch),
-            to_attr="prefetched_option_types",
+            to_attr="product_options",
         )
 
         product_prefetch = Prefetch(
             "products",
             queryset=Product.objects.filter(post=pk).prefetch_related(product_option_type_prefetch),
-            to_attr="prefetched_products",
+            to_attr="all_products",
         )
 
         post = get_object_or_404(Post.objects.prefetch_related("images", product_prefetch), id=pk, shop=shop_id)

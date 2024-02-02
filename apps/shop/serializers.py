@@ -21,11 +21,12 @@ class ImageModelSerializer(serializers.ModelSerializer):
             "id",
             "image",
             "is_main",
+            # "alt_text",
         )
 
 
 class PostListSerializer(serializers.ModelSerializer):
-    all_image = ImageModelSerializer(many=True, read_only=True)
+    main_image = ImageModelSerializer(many=False, read_only=True)
     created_at = serializers.SerializerMethodField()
     updated_at = serializers.SerializerMethodField()
 
@@ -39,10 +40,9 @@ class PostListSerializer(serializers.ModelSerializer):
         model = Post
         fields = (
             "id",
-            "all_image",
+            "main_image",
             "insta_url",
             "name",
-            "description",
             "created_at",
             "updated_at",
         )
@@ -61,32 +61,32 @@ class ProductVariantSerializer(serializers.ModelSerializer):
 
 
 class ProductOptionTypeSerializer(serializers.ModelSerializer):
-    prefetched_product_variants = ProductVariantSerializer(many=True, read_only=True)
+    variants = ProductVariantSerializer(many=True, read_only=True)
 
     class Meta:
         model = ProductOptionType
         fields = (
             "id",
             "name",
-            "prefetched_product_variants",
+            "variants",
         )
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    prefetched_option_types = ProductOptionTypeSerializer(many=True, read_only=True)
+    product_options = ProductOptionTypeSerializer(many=True, read_only=True)
 
     class Meta:
         model = Product
         fields = (
             "id",
             "name",
-            "prefetched_option_types",
+            "product_options",
         )
 
 
 class PostDetailSerializer(serializers.ModelSerializer):
-    prefetched_products = ProductSerializer(many=True, read_only=True)
-    all_image = ImageModelSerializer(many=True, read_only=True)
+    all_products = ProductSerializer(many=True, read_only=True)
+    all_images = ImageModelSerializer(many=True, read_only=True)
     created_at = serializers.SerializerMethodField()
     updated_at = serializers.SerializerMethodField()
 
@@ -100,11 +100,11 @@ class PostDetailSerializer(serializers.ModelSerializer):
         model = Post
         fields = (
             "id",
-            "all_image",
+            "all_images",
             "insta_url",
             "name",
             "description",
             "created_at",
             "updated_at",
-            "prefetched_products",
+            "all_products",
         )
