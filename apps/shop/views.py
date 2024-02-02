@@ -1,8 +1,8 @@
 import logging
-from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
 
 import requests
+from django.core.cache import cache
 from django.core.files import File
 from django.db import transaction
 from django.db.models import Prefetch
@@ -18,9 +18,9 @@ from apps.shop.models import ProductOptionType
 from apps.shop.models import ProductVariant
 from apps.shop.serializers import PostDetailSerializer
 from apps.shop.serializers import PostListSerializer
-from helpers.functions import extract_shortcode
-from helpers.functions import fetch_instagram_data
-from helpers.functions import generate_unique_filename
+from helpers.APIs import fetch_instagram_data
+from helpers.utils import extract_shortcode
+from helpers.utils import generate_unique_filename
 
 # Configure logging
 # logger = logging.getLogger(__name__)
@@ -110,20 +110,19 @@ class GetFromInsta(APIView):
         ProductVariant.objects.bulk_create(all_variants)
 
     def save_images_to_database(self, images, post):
-        for i,image_url in enumerate(images):
-            is_main =True if i==0 else False 
+        for i, image_url in enumerate(images):
+            is_main = True if i == 0 else False
             try:
                 response = requests.get(image_url, timeout=15)  # timeout in seconds
                 if response.status_code == 200:
                     image_data = BytesIO(response.content)
                     unique_filename = generate_unique_filename(post.name)
-                    post_image = ImageModel(content_object=post,is_main=is_main)
+                    post_image = ImageModel(content_object=post, is_main=is_main)
                     post_image.image.save(unique_filename, File(image_data))
                     post_image.save()
             except requests.RequestException as e:
                 pass
                 # logger.error(f"Failed to download image: {image_url}, Error: {e}")  # noqa : G004
-
 
     def get_dummy_variants(self):
         # Replace this method with actual logic to fetch or create variants
@@ -158,37 +157,53 @@ class GetFromInsta(APIView):
 class PostList(APIView):
     def get(self, request):
         shop_id = request.shop.id
-        query = Post.objects.filter(shop=shop_id).prefetch_related("images")
-        serializer = PostListSerializer(query, many=True, context={"request": request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        cache_key = f"post_list_{shop_id}"
+        cache_time = 60 * 15  # Cache for 15 minutes
+
+        # Try to get data from cache
+        data = cache.get(cache_key)
+        if not data:
+            query = Post.objects.filter(shop=shop_id).prefetch_related("images")
+            serializer = PostListSerializer(query, many=True, context={"request": request})
+            data = serializer.data
+            cache.set(cache_key, data, cache_time)
+
+        return Response(data, status=status.HTTP_200_OK)
 
 
 class PostDetail(APIView):
     def get(self, request, pk):
-        shop_id = request.shop.id
+        cache_key = f"post_detail_{pk}"
+        cache_time = 60 * 15  # cache for 15 minutes
+        data = cache.get(cache_key)
+        
+        if not data:
+            shop_id = request.shop.id
 
-        product_variant_prefetch = Prefetch(
-            "values",
-            queryset=ProductVariant.objects.all(),
-            to_attr="variants",
-        )
+            product_variant_prefetch = Prefetch(
+                "values",
+                queryset=ProductVariant.objects.all(),
+                to_attr="variants",
+            )
 
-        product_option_type_prefetch = Prefetch(
-            "option_types",
-            queryset=ProductOptionType.objects.prefetch_related(product_variant_prefetch),
-            to_attr="product_options",
-        )
+            product_option_type_prefetch = Prefetch(
+                "option_types",
+                queryset=ProductOptionType.objects.prefetch_related(product_variant_prefetch),
+                to_attr="product_options",
+            )
 
-        product_prefetch = Prefetch(
-            "products",
-            queryset=Product.objects.filter(post=pk).prefetch_related(product_option_type_prefetch),
-            to_attr="all_products",
-        )
+            product_prefetch = Prefetch(
+                "products",
+                queryset=Product.objects.filter(post=pk).prefetch_related(product_option_type_prefetch),
+                to_attr="all_products",
+            )
 
-        post = get_object_or_404(Post.objects.prefetch_related("images", product_prefetch), id=pk, shop=shop_id)
+            post = get_object_or_404(Post.objects.prefetch_related("images", product_prefetch), id=pk, shop=shop_id)
 
-        serializer = PostDetailSerializer(post, context={"request": request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            serializer = PostDetailSerializer(post, context={"request": request})
+            data = serializer.data
+            cache.set(cache_key, data, cache_time)
+        return Response(data, status=status.HTTP_200_OK)
 
 
 # normal code

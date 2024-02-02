@@ -26,15 +26,13 @@ class Post(TimeStampedModel):
     @property
     def all_images(self):
         return self.images.all()
-    
+
     @property
     def main_image(self):
         obj = self.images.filter(is_main=True).first()
         if not obj:
             obj = self.images.first()
         return obj
-
-        
 
     def __str__(self):
         return f"id : {self.id} -- name : {self.name} "
@@ -85,7 +83,7 @@ class ProductVariant(TimeStampedModel):
 class ImageModel(TimeStampedModel):
     image = models.ImageField()
     is_main = models.BooleanField(default=False)
-    alt_text = models.CharField(max_length=127,default=None,null=True,blank=True)
+    alt_text = models.CharField(max_length=127, default=None, null=True, blank=True)
 
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
     object_id = models.PositiveIntegerField(null=True, blank=True)

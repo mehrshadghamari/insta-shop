@@ -1,18 +1,8 @@
-import uuid
-from datetime import datetime
-
 import requests
 
 
-def extract_shortcode(post_url):
-    try:
-        return post_url.split("/")[4]
-    except IndexError:
-        return None
-
-
-# Fetch Instagram data using the shortcode
 def fetch_instagram_data(shortcode):
+    """Fetch Instagram data using the shortcode."""
     url = "https://instagram230.p.rapidapi.com/post/details"
     querystring = {"shortcode": shortcode}
     headers = {
@@ -26,8 +16,3 @@ def fetch_instagram_data(shortcode):
         return response.json()["data"]["xdt_api__v1__media__shortcode__web_info"]["items"][0]
     except requests.exceptions.RequestException:
         return None
-
-
-def generate_unique_filename(username):
-    """Generate a unique file name for an image."""
-    return f"image-shop:{username}-imgID:{uuid.uuid4().hex}-time:{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
