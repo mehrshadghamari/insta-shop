@@ -1,9 +1,77 @@
+import json
+from abc import ABC
+from abc import abstractmethod
+
+import redis
 from django.core.cache import cache
+from django.core.cache import cache as django_cache
+from pymemcache.client.base import Client as MemcacheClient
 
 from apps.shop.models import Post
 
 
-def clear_related_post_cache(instance):
+# Strategy Interface
+class CacheStrategy(ABC):
+    @abstractmethod
+    def get(self, key):
+        pass
+
+    @abstractmethod
+    def set(self, key, value, timeout=None):
+        pass
+
+
+# Redis Strategy
+class RedisCacheStrategy(CacheStrategy):
+    def __init__(self, host="localhost", port=6379, db=0):
+        self.client = redis.Redis(host=host, port=port, db=db, decode_responses=True)
+
+    def get(self, key):
+        value = self.client.get(key)
+        return json.loads(value) if value else None
+
+    def set(self, key, value, timeout=None):
+        self.client.setex(key, timeout or 0, json.dumps(value))
+
+
+# Memcached Strategy
+class MemcachedStrategy(CacheStrategy):
+    def __init__(self, host="localhost", port=11211):
+        self.client = MemcacheClient((host, port))
+
+    def get(self, key):
+        value = self.client.get(key)
+        return json.loads(value.decode("utf-8")) if value else None
+
+    def set(self, key, value, timeout=None):
+        self.client.set(key, json.dumps(value).encode("utf-8"), expire=timeout)
+
+
+# Django Cache Strategy
+class DjangoCacheStrategy(CacheStrategy):
+    def get(self, key):
+        return django_cache.get(key)
+
+    def set(self, key, value, timeout=None):
+        django_cache.set(key, value, timeout)
+
+
+# Context Class
+class CacheHandler:
+    def __init__(self, strategy: CacheStrategy):
+        self._strategy = strategy
+
+    def set_strategy(self, strategy: CacheStrategy):
+        self._strategy = strategy
+
+    def get(self, key):
+        return self._strategy.get(key)
+
+    def set(self, key, value, timeout=None):
+        self._strategy.set(key, value, timeout)
+
+
+def clear_related_post_cache(instance, cache_handler):
     post_ids = set()
     shop_ids = set()
 
@@ -34,6 +102,9 @@ def clear_related_post_cache(instance):
                 shop_ids.add(post.shop_id)
 
     for post_id in post_ids:
-        cache.delete(f"post_detail_{post_id}")
+        cache_handler.delete(f"post_detail_{post_id}")
     for shop_id in shop_ids:
-        cache.delete(f"post_list_{shop_id}")
+        cache_handler.delete(f"post_list_{shop_id}")
+
+
+cache_handler = CacheHandler(DjangoCacheStrategy())

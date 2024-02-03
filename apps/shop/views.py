@@ -2,7 +2,6 @@ import logging
 from io import BytesIO
 
 import requests
-from django.core.cache import cache
 from django.core.files import File
 from django.db import transaction
 from django.db.models import Prefetch
@@ -19,6 +18,7 @@ from apps.shop.models import ProductVariant
 from apps.shop.serializers import PostDetailSerializer
 from apps.shop.serializers import PostListSerializer
 from helpers.APIs import fetch_instagram_data
+from helpers.caches import cache_handler
 from helpers.utils import extract_shortcode
 from helpers.utils import generate_unique_filename
 
@@ -161,12 +161,12 @@ class PostList(APIView):
         cache_time = 60 * 15  # Cache for 15 minutes
 
         # Try to get data from cache
-        data = cache.get(cache_key)
+        data = cache_handler.get(cache_key)
         if not data:
             query = Post.objects.filter(shop=shop_id).prefetch_related("images")
             serializer = PostListSerializer(query, many=True, context={"request": request})
             data = serializer.data
-            cache.set(cache_key, data, cache_time)
+            cache_handler.set(cache_key, data, cache_time)
 
         return Response(data, status=status.HTTP_200_OK)
 
@@ -175,8 +175,7 @@ class PostDetail(APIView):
     def get(self, request, pk):
         cache_key = f"post_detail_{pk}"
         cache_time = 60 * 15  # cache for 15 minutes
-        data = cache.get(cache_key)
-
+        data = cache_handler.get(cache_key)
         if not data:
             shop_id = request.shop.id
 
@@ -202,8 +201,11 @@ class PostDetail(APIView):
 
             serializer = PostDetailSerializer(post, context={"request": request})
             data = serializer.data
-            cache.set(cache_key, data, cache_time)
+            cache_handler.set(cache_key, data, cache_time)
         return Response(data, status=status.HTTP_200_OK)
+
+
+# with redis cache
 
 
 # normal code

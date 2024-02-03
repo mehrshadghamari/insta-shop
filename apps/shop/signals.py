@@ -1,4 +1,3 @@
-from django.contrib.contenttypes.fields import ContentType
 from django.db.models.signals import post_delete
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -8,6 +7,7 @@ from apps.shop.models import Post
 from apps.shop.models import Product
 from apps.shop.models import ProductOptionType
 from apps.shop.models import ProductVariant
+from helpers.caches import cache_handler
 from helpers.caches import clear_related_post_cache
 
 
@@ -22,4 +22,4 @@ from helpers.caches import clear_related_post_cache
 @receiver(post_save, sender=ImageModel)
 @receiver(post_delete, sender=ImageModel)
 def clear_cache(sender, instance, **kwargs):
-    clear_related_post_cache(instance)
+    clear_related_post_cache(instance, cache_handler)
