@@ -17,8 +17,8 @@ from apps.shop.models import ProductOptionType
 from apps.shop.models import ProductVariant
 from apps.shop.serializers import PostDetailSerializer
 from apps.shop.serializers import PostListSerializer
-from helpers.APIs import fetch_instagram_data
 from helpers.caches import cache_handler
+from helpers.instagram_APIs import InstagramFetchStrategyFactory
 from helpers.utils import extract_shortcode
 from helpers.utils import generate_unique_filename
 
@@ -37,7 +37,8 @@ class GetFromInsta(APIView):
         if not shortcode:
             return Response({"error": "Shortcode parameter is missing"}, status=status.HTTP_400_BAD_REQUEST)
 
-        data = fetch_instagram_data(shortcode)
+        instagram_API = InstagramFetchStrategyFactory()
+        data = instagram_API.fetch_data(shortcode)
         if data is None:
             return Response({"error": "Failed to fetch Instagram data"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
@@ -49,6 +50,7 @@ class GetFromInsta(APIView):
 
         variants = self.get_dummy_variants()  # Replace with actual logic to get variants
 
+        # Process and save the fetched data
         with transaction.atomic():
             post_obj = self.create_post(shop, post_url, data)
             self.create_products_and_variants(post_obj, variants)
@@ -82,7 +84,7 @@ class GetFromInsta(APIView):
         )
 
     def create_products_and_variants(self, post_obj, variants):
-        all_products = [Product(post=post_obj, name=variant["name"]) for variant in variants]
+        all_products = [Product(post=post_obj, name=variant["name"], price=variant["price"]) for variant in variants]
         Product.objects.bulk_create(all_products)
 
         all_option_types = []
@@ -102,8 +104,7 @@ class GetFromInsta(APIView):
             for option, option_values in variant["options"].items():
                 option_type_obj = option_types_mapping[(product_obj.id, option)]
                 variants_to_create = [
-                    ProductVariant(option_type=option_type_obj, option_value=value, price=variant["price"])
-                    for value in option_values
+                    ProductVariant(option_type=option_type_obj, option_value=value) for value in option_values
                 ]
                 all_variants.extend(variants_to_create)
 

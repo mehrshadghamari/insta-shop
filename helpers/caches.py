@@ -20,6 +20,10 @@ class CacheStrategy(ABC):
     def set(self, key, value, timeout=None):
         pass
 
+    @abstractmethod
+    def delete(self, key):
+        pass
+
 
 # Redis Strategy
 class RedisCacheStrategy(CacheStrategy):
@@ -32,6 +36,9 @@ class RedisCacheStrategy(CacheStrategy):
 
     def set(self, key, value, timeout=None):
         self.client.setex(key, timeout or 0, json.dumps(value))
+
+    def delete(self, key):
+        self.client.delete(key)
 
 
 # Memcached Strategy
@@ -46,6 +53,9 @@ class MemcachedStrategy(CacheStrategy):
     def set(self, key, value, timeout=None):
         self.client.set(key, json.dumps(value).encode("utf-8"), expire=timeout)
 
+    def delete(self, key):
+        self.client.delete(key)
+
 
 # Django Cache Strategy
 class DjangoCacheStrategy(CacheStrategy):
@@ -54,6 +64,9 @@ class DjangoCacheStrategy(CacheStrategy):
 
     def set(self, key, value, timeout=None):
         django_cache.set(key, value, timeout)
+
+    def delete(self, key):
+        django_cache.delete(key)
 
 
 # Context Class
@@ -69,6 +82,9 @@ class CacheHandler:
 
     def set(self, key, value, timeout=None):
         self._strategy.set(key, value, timeout)
+
+    def delete(self, key):
+        self._strategy.delete(key)
 
 
 def clear_related_post_cache(instance, cache_handler):
