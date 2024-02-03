@@ -1,4 +1,5 @@
 asgiref==3.7.2
+async-timeout==4.0.3
 attrs==23.2.0
 certifi==2023.11.17
 cfgv==3.4.0
@@ -25,8 +26,10 @@ pre-commit==3.5.0
 psycopg2-binary==2.9.9
 py-code-meli==0.1.3
 PyJWT==2.8.0
+pymemcache==4.0.0
 pytz==2023.3.post1
 PyYAML==6.0.1
+redis==5.0.1
 referencing==0.32.0
 requests==2.31.0
 rpds-py==0.13.2
