@@ -176,7 +176,7 @@ class PostDetail(APIView):
         cache_key = f"post_detail_{pk}"
         cache_time = 60 * 15  # cache for 15 minutes
         data = cache.get(cache_key)
-        
+
         if not data:
             shop_id = request.shop.id
 

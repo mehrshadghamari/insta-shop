@@ -54,9 +54,6 @@ class ProductVariantSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "option_value",
-            "price",
-            "discount",
-            "final_price",
         )
 
 
@@ -80,6 +77,9 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "name",
+            "price",
+            "discount",
+            "final_price",
             "product_options",
         )
 

@@ -41,6 +41,16 @@ class Post(TimeStampedModel):
 class Product(TimeStampedModel):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="products")
     name = models.CharField(max_length=127)
+    price = models.FloatField()
+    discount = models.PositiveSmallIntegerField(default=0, validators=[MaxValueValidator(99), MinValueValidator(0)])
+
+    @property
+    def final_price(self):
+        if self.discount == 0:
+            final_price = self.price
+        else:
+            final_price = float(self.price - (self.price * self.discount / 100))
+        return final_price
 
     @property
     def options(self):
@@ -65,16 +75,6 @@ class ProductOptionType(TimeStampedModel):
 class ProductVariant(TimeStampedModel):
     option_type = models.ForeignKey(ProductOptionType, on_delete=models.CASCADE, related_name="values")
     option_value = models.CharField(max_length=127)  # e.g., "red", "blue", "L", "XL"
-    price = models.FloatField()
-    discount = models.PositiveSmallIntegerField(default=0, validators=[MaxValueValidator(99), MinValueValidator(0)])
-
-    @property
-    def final_price(self):
-        if self.discount == 0:
-            final_price = self.price
-        else:
-            final_price = float(self.price - (self.price * self.discount / 100))
-        return final_price
 
     def __str__(self):
         return self.option_value

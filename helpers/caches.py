@@ -24,7 +24,6 @@ def clear_related_post_cache(instance):
         shop_id = getattr(instance.product.post, "shop_id", None)
         post_ids.add(post_id)
         shop_ids.add(shop_id)
-        
 
     elif hasattr(instance, "option_type") and hasattr(instance.option_type, "product"):
         product = instance.option_type.product
