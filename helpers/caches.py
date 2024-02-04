@@ -87,11 +87,18 @@ class CacheHandler:
         self._strategy.delete(key)
 
 
+cache_handler = CacheHandler(DjangoCacheStrategy())
+
+
 def clear_related_post_cache(instance, cache_handler):
     post_ids = set()
     shop_ids = set()
 
-    if hasattr(instance, "post_id"):
+    if isinstance(instance, Post):
+        post_ids.add(instance.id)
+        shop_ids.add(instance.shop.id)
+
+    elif hasattr(instance, "post_id"):
         post_ids.add(instance.post_id)
         shop_id = getattr(instance, "shop_id", None) or getattr(instance.post, "shop_id", None)
         if shop_id:
@@ -117,10 +124,5 @@ def clear_related_post_cache(instance, cache_handler):
             if hasattr(post, "shop_id"):
                 shop_ids.add(post.shop_id)
 
-    for post_id in post_ids:
-        cache_handler.delete(f"post_detail_{post_id}")
-    for shop_id in shop_ids:
-        cache_handler.delete(f"post_list_{shop_id}")
-
-
-cache_handler = CacheHandler(DjangoCacheStrategy())
+    [cache_handler.delete(f"post_detail_{post_id}") for post_id in post_ids]
+    [cache_handler.delete(f"post_list_{shop_id}") for shop_id in shop_ids]

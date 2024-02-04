@@ -11,7 +11,7 @@ class InstagramFetchStrategy(ABC):
         pass
 
 
-class RapidAPIFetchStrategy(InstagramFetchStrategy):
+class Instagram230FetchStrategy(InstagramFetchStrategy):
     def fetch_data(self, shortcode):
         url = "https://instagram230.p.rapidapi.com/post/details"
         querystring = {"shortcode": shortcode}
@@ -25,17 +25,26 @@ class RapidAPIFetchStrategy(InstagramFetchStrategy):
             response.raise_for_status()
             return response.json()["data"]["xdt_api__v1__media__shortcode__web_info"]["items"][0]
         except requests.exceptions.RequestException as e:
-            raise Exception(f"Failed to fetch from RapidAPI: {e}")
+            raise Exception(f"Failed to fetch from instagram230: {e}")
 
 
-class RapidAPI2FetchStrategy(InstagramFetchStrategy):
+class RocketapiFetchStrategy(InstagramFetchStrategy):
     def fetch_data(self, shortcode):
+        # url = "https://rocketapi-for-instagram.p.rapidapi.com/instagram/media/get_id_by_shortcode"
+        # payload = { "shortcode": shortcode }
+        # headers = {
+        #     "content-type": "application/json",
+        #     "X-RapidAPI-Key": "346836d01cmshc9bf626dafcbebcp111cebjsn3ee0b3356736",
+        #     "X-RapidAPI-Host": "rocketapi-for-instagram.p.rapidapi.com"
+        # }
+        # response = requests.post(url, json=payload, headers=headers)
+        # return response.json()
         raise NotImplementedError("This strategy is not implemented yet.")
 
 
 class InstagramFetchStrategyFactory:
     def __init__(self):
-        self.strategies = [RapidAPIFetchStrategy(), RapidAPI2FetchStrategy()]
+        self.strategies = [Instagram230FetchStrategy(), RocketapiFetchStrategy()]
 
     def fetch_data(self, shortcode):
         strategies = self.strategies[:]

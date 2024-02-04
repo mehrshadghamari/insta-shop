@@ -1,4 +1,5 @@
 import logging
+import math
 from io import BytesIO
 
 import requests
@@ -37,8 +38,8 @@ class GetFromInsta(APIView):
         if not shortcode:
             return Response({"error": "Shortcode parameter is missing"}, status=status.HTTP_400_BAD_REQUEST)
 
-        instagram_API = InstagramFetchStrategyFactory()
-        data = instagram_API.fetch_data(shortcode)
+        instagram_api = InstagramFetchStrategyFactory()
+        data = instagram_api.fetch_data(shortcode)
         if data is None:
             return Response({"error": "Failed to fetch Instagram data"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
@@ -157,6 +158,8 @@ class GetFromInsta(APIView):
 
 class PostList(APIView):
     def get(self, request):
+        page_number = int(self.request.query_params.get("page", 1))  # default page=1
+        page_size = int(self.request.query_params.get("page_size", 2))  # default page size=20
         shop_id = request.shop.id
         cache_key = f"post_list_{shop_id}"
         cache_time = 60 * 15  # Cache for 15 minutes
@@ -169,7 +172,12 @@ class PostList(APIView):
             data = serializer.data
             cache_handler.set(cache_key, data, cache_time)
 
-        return Response(data, status=status.HTTP_200_OK)
+        page_count = math.ceil(len(data) / page_size)
+        paginate_data = data[page_size * (page_number - 1) : page_size * (page_number)]
+
+        res = {"current_page": page_number, "page_count": page_count, "posts": paginate_data}
+
+        return Response(res, status=status.HTTP_200_OK)
 
 
 class PostDetail(APIView):
@@ -177,6 +185,7 @@ class PostDetail(APIView):
         cache_key = f"post_detail_{pk}"
         cache_time = 60 * 15  # cache for 15 minutes
         data = cache_handler.get(cache_key)
+
         if not data:
             shop_id = request.shop.id
 
