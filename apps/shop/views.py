@@ -22,6 +22,7 @@ from helpers.caches import cache_handler
 from helpers.instagram_APIs import InstagramFetchStrategyFactory
 from helpers.utils import extract_shortcode
 from helpers.utils import generate_unique_filename
+from apps.shop.tasks import process_instagram_post
 
 # Configure logging
 # logger = logging.getLogger(__name__)
@@ -29,7 +30,7 @@ from helpers.utils import generate_unique_filename
 
 class GetFromInsta(APIView):
     def post(self, request):
-        shop = self.request.shop
+        shop = request.shop
         if not shop:
             return Response({"error": "Shop ID is required"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -43,9 +44,16 @@ class GetFromInsta(APIView):
         if data is None:
             return Response({"error": "Failed to fetch Instagram data"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
+        # Offload heavy processing to Celery task
+        # process_instagram_post.delay(shop.id, post_url, data)
+
+        # Immediate response to client
+        # return Response({"message": "Instagram data is being processed"}, status=status.HTTP_202_ACCEPTED)
+
         images = self.extract_images(data)
         if not images:
             return Response({"error": "No images found in the Instagram post"}, status=status.HTTP_404_NOT_FOUND)
+        
 
         formatted_response = self.format_response(data, images)
 
