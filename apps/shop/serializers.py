@@ -29,6 +29,7 @@ class PostListSerializer(serializers.ModelSerializer):
     main_image = ImageModelSerializer(many=False, read_only=True)
     created_at = serializers.SerializerMethodField()
     updated_at = serializers.SerializerMethodField()
+    prices = serializers.ListField()
 
     def get_created_at(self, obj):
         return int(obj.created_at.timestamp())
@@ -43,6 +44,7 @@ class PostListSerializer(serializers.ModelSerializer):
             "main_image",
             "insta_url",
             "name",
+            "prices",
             "created_at",
             "updated_at",
         )

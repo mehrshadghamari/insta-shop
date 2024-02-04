@@ -34,6 +34,10 @@ class Post(TimeStampedModel):
             obj = self.images.first()
         return obj
 
+    @property
+    def prices(self):
+        return self.products.all().values_list("price", flat=True)
+
     def __str__(self):
         return f"id : {self.id} -- name : {self.name} "
 
