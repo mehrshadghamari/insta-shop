@@ -30,16 +30,17 @@ class Instagram230FetchStrategy(InstagramFetchStrategy):
 
 class RocketapiFetchStrategy(InstagramFetchStrategy):
     def fetch_data(self, shortcode):
-        # url = "https://rocketapi-for-instagram.p.rapidapi.com/instagram/media/get_id_by_shortcode"
-        # payload = { "shortcode": shortcode }
-        # headers = {
-        #     "content-type": "application/json",
-        #     "X-RapidAPI-Key": "346836d01cmshc9bf626dafcbebcp111cebjsn3ee0b3356736",
-        #     "X-RapidAPI-Host": "rocketapi-for-instagram.p.rapidapi.com"
-        # }
-        # response = requests.post(url, json=payload, headers=headers)
-        # return response.json()
-        raise NotImplementedError("This strategy is not implemented yet.")
+        url = "https://rocketapi-for-instagram.p.rapidapi.com/instagram/media/get_info_by_shortcode"
+
+        payload = {"shortcode": shortcode}
+        headers = {
+            "content-type": "application/json",
+            "X-RapidAPI-Key": "346836d01cmshc9bf626dafcbebcp111cebjsn3ee0b3356736",
+            "X-RapidAPI-Host": "rocketapi-for-instagram.p.rapidapi.com",
+        }
+
+        response = requests.post(url, json=payload, headers=headers)
+        return response.json()["response"]["body"]["items"][0]
 
 
 class InstagramFetchStrategyFactory:
