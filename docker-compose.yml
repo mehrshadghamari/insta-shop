@@ -6,6 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    entrypoint: ["sh","/entrypoint.sh"]
     volumes:
       - type: volume
         source: static
@@ -51,6 +52,23 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  celery_worker:
+    build: .
+    command: celery -A insta_shop worker --loglevel=info
+    volumes:
+      - type: bind
+        source: .
+        target: /app
+    depends_on:
+      - backend_api
+      - redis
+
 
 
 
