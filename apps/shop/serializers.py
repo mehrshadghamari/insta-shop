@@ -110,3 +110,15 @@ class PostDetailSerializer(serializers.ModelSerializer):
             "updated_at",
             "all_products",
         )
+
+
+class PostUpdateSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=255)
+    description = serializers.CharField()
+
+
+class ProductUpdateSerializer(serializers.Serializer):
+    id = serializers.IntegerField(required=False, allow_null=True)
+    name = serializers.CharField(max_length=255)
+    price = serializers.FloatField()
+    options = serializers.DictField()
