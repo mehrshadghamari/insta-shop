@@ -152,7 +152,7 @@ class UserProfile(TimeStampedModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
 
-class Shop(T):
+class Shop(TimeStampedModel):
     domain = models.URLField(unique=True, db_index=True)
 
     def __str__(self):
