@@ -6,10 +6,11 @@ from apps.panel.models import Shop
 from apps.panel.models import ShopInfo
 from apps.panel.models import ShopUser
 from apps.panel.models import Subscription
-from apps.panel.models import SubscriptionType
+from apps.panel.models import SubscriptionType,UserProfile
 from apps.panel.models import User
 
 admin.site.register(User)
+admin.site.register(UserProfile)
 admin.site.register(ShopUser)
 admin.site.register(ShopInfo)
 admin.site.register(PaymentInfo)
