@@ -148,8 +148,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         return f"{str(self.phone_number)} - {self.full_name} "
 
 
-class UserProfile(TimeStampedModel):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+class UserProfile(User):
+    pass
+    # user = models.OneToOneField(User, on_delete=models.CASCADE)
 
 
 class Shop(TimeStampedModel):
