@@ -19,6 +19,7 @@ from apps.shop.models import ProductVariant
 from apps.shop.serializers import PostDetailSerializer
 from apps.shop.serializers import PostListSerializer
 from apps.shop.serializers import PostUpdateSerializer
+from apps.shop.serializers import ProductCreateSerializer
 from apps.shop.serializers import ProductUpdateSerializer
 from helpers.caches import cache_handler
 from helpers.instagram_APIs import InstagramFetchStrategyFactory
@@ -248,42 +249,67 @@ class PostDelete(APIView):
 
 
 class ProductUpdate(APIView):
+    def put(self, request):
+        shop_id = request.shop.id
+        post_id = request.query_params.get("post-id")
+
+        serializer = ProductUpdateSerializer(data=request.data)
+
+        if serializer.is_valid():
+            product_data = serializer.validated_data
+
+            post = get_object_or_404(Post, id=post_id, shop_id=shop_id)
+
+            product_id = product_data.get("id")
+
+            product = Product.objects.filter(id=product_id, post=post).first()
+
+            if product:
+                product.name = product_data["name"]
+                product.price = product_data["price"]
+                product.save()
+            else:
+                return Response({"error": "Product not found."}, status=status.HTTP_404_NOT_FOUND)
+
+            # Delete existing options and recreate
+            ProductOptionType.objects.filter(product=product).delete()
+            for option_name, option_values in product_data["options"].items():
+                option_type = ProductOptionType.objects.create(product=product, name=option_name)
+                for value in option_values:
+                    ProductVariant.objects.create(option_type=option_type, option_value=value)
+
+            return Response({"message": "Products updated successfully"}, status=status.HTTP_200_OK)
+
+        else:
+            # Return errors if data is invalid
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProductCreate(APIView):
     def post(self, request):
         shop_id = request.shop.id
         post_id = request.query_params.get("post-id")
 
-        serializer = ProductUpdateSerializer(data=request.data, many=True)
+        serializer = ProductCreateSerializer(data=request.data)
 
         if serializer.is_valid():
-            products_data = serializer.data
+            product_data = serializer.validated_data
 
             post = get_object_or_404(Post, id=post_id, shop_id=shop_id)
 
-            for product_data in products_data:
-                product_id = product_data.get("id")
-                if product_id:
-                    # Update existing product
-                    product = Product.objects.filter(id=product_id, post=post).first()
-                    if product:
-                        product.name = product_data["name"]
-                        product.price = product_data["price"]
-                        product.save()
-                    else:
-                        return Response({"error": "Product not found."}, status=status.HTTP_404_NOT_FOUND)
-                else:
-                    # Create new product
-                    product = Product.objects.create(post=post, name=product_data["name"], price=product_data["price"])
+            product = Product.objects.create(
+                post=post,
+                name=product_data["name"],
+                price=product_data["price"],
+            )
+            # Delete existing options and recreate
+            ProductOptionType.objects.filter(product=product).delete()
+            for option_name, option_values in product_data["options"].items():
+                option_type = ProductOptionType.objects.create(product=product, name=option_name)
+                for value in option_values:
+                    ProductVariant.objects.create(option_type=option_type, option_value=value)
 
-                # Handle options
-                for option_name, option_values in product_data["options"].items():
-                    option_type, created = ProductOptionType.objects.get_or_create(product=product, name=option_name)
-                    # Clear existing option values if not to append
-                    if not created:
-                        ProductVariant.objects.filter(option_type=option_type).delete()
-                    for value in option_values:
-                        ProductVariant.objects.create(option_type=option_type, option_value=value)
-
-            return Response({"message": "Products updated successfully"}, status=status.HTTP_200_OK)
+            return Response({"message": "Product created successfully"}, status=status.HTTP_201_CREATED)
 
         else:
             # Return errors if data is invalid

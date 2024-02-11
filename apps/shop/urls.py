@@ -12,6 +12,7 @@ urlpatterns = [
     path("post-update/", views.PostUpdate.as_view(), name="post-update"),
     path("post-delete/", views.PostDelete.as_view(), name="post-delete"),
     path("product-update/", views.ProductUpdate.as_view(), name="product-update"),
+    path("product-create/", views.ProductCreate.as_view(), name="product-create"),
     path("product-delete/", views.ProductDelete.as_view(), name="product-delete"),
 ]
 
