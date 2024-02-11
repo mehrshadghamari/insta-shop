@@ -121,10 +121,10 @@ class ProductUpdateSerializer(serializers.Serializer):
     id = serializers.IntegerField(required=True)
     name = serializers.CharField(max_length=255)
     price = serializers.FloatField()
-    options = serializers.DictField()
+    options = serializers.DictField(child=serializers.ListField(child=serializers.CharField()))
 
 
 class ProductCreateSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=255)
     price = serializers.FloatField()
-    options = serializers.DictField()
+    options = serializers.DictField(child=serializers.ListField(child=serializers.CharField()))
