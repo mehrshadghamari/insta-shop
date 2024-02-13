@@ -118,7 +118,13 @@ class PostUpdateSerializer(serializers.Serializer):
 
 
 class ProductUpdateSerializer(serializers.Serializer):
-    id = serializers.IntegerField(required=False, allow_null=True)
+    id = serializers.IntegerField(required=True)
+    name = serializers.CharField(max_length=255)
+    price = serializers.FloatField()
+    options = serializers.DictField()
+
+
+class ProductCreateSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=255)
     price = serializers.FloatField()
     options = serializers.DictField()
