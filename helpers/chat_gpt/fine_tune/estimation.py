@@ -2,10 +2,11 @@ import os
 
 import tiktoken
 
-from helpers.chat_gpt.fine_tune.helpers.cost_estimation import cost_estimation
-from helpers.chat_gpt.fine_tune.helpers.data_loading import load_dataset
-from helpers.chat_gpt.fine_tune.helpers.data_warnings_and_token_counts import data_warnings_and_token_counts
-from helpers.chat_gpt.fine_tune.helpers.format_validation import validate_format
+from helpers.cost_estimation import cost_estimation
+from helpers.data_loading import load_dataset
+from helpers.data_warnings_and_token_counts import data_warnings_and_token_counts
+from helpers.format_validation import validate_format
+
 
 # Get the current working directory
 directory_path = os.getcwd()
@@ -13,9 +14,12 @@ directory_path = os.getcwd()
 # Construct the path to the data_set directory
 data_set_directory = os.path.join(directory_path, "data_set")
 
-# Construct the path to the JSON dataset file
-json_file_path = os.path.join(data_set_directory, "fine_tuning_data_set.json")
+print("sssssssssssssssssssssssssssssssssssssssssssssssssssss")
+print(data_set_directory)
 
+# Construct the path to the JSON dataset file
+json_file_path = os.path.join(data_set_directory, "dataset.jsonl")
+print(json_file_path)
 
 # Step 1: Load the dataset
 dataset = load_dataset(data_path=json_file_path)

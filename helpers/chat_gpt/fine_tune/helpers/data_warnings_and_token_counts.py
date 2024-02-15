@@ -1,5 +1,5 @@
-from helpers.chat_gpt.fine_tune.helpers.token_counting_utilities import num_assistant_tokens_from_messages
-from helpers.chat_gpt.fine_tune.helpers.token_counting_utilities import num_tokens_from_messages
+from helpers.token_counting_utilities import num_assistant_tokens_from_messages
+from helpers.token_counting_utilities import num_tokens_from_messages
 
 
 def data_warnings_and_token_counts(dataset, encoding):
