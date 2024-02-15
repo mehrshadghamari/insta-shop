@@ -1,6 +1,6 @@
 import openai
 from helpers.data_loading import load_dataset
-
+import os
 
 # Set your OpenAI API key
 api_key = 'YOUR_API_KEY'
