@@ -13,3 +13,10 @@ completion = client.chat.completions.create(
 )
 print(completion)
 
+
+
+
+# {
+#   "role": "system",
+#   "content": "Extract and format product details from Instagram posts as a JSON array string. Each product entry should include the product's name, SKU (stock keeping unit), original price, discounted price (if applicable), and available options such as colors and sizes. Ensure no spaces are included in the JSON string, and all fields are accurately represented. Example format: '[{\"name\":\"ProductName\",\"sku\":\"ProductCode\",\"price\":\"OriginalPrice\",\"final_price\":\"DiscountedPrice\",\"options\":{\"colors\":[\"Color1\",\"Color2\"],\"sizes\":[\"Size1\",\"Size2\"]}}]'. Use placeholders for actual values and include all relevant details for each product."
+# }
