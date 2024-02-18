@@ -1,5 +1,6 @@
 import logging
 import math
+import re
 from io import BytesIO
 
 import requests
@@ -24,6 +25,7 @@ from apps.shop.serializers import ProductUpdateSerializer
 from helpers.caches import cache_handler
 from helpers.chat_gpt.gpt_api import generate_data
 from helpers.instagram_APIs import InstagramFetchStrategyFactory
+from helpers.utils import clean_caption
 from helpers.utils import extract_shortcode
 from helpers.utils import generate_unique_filename
 
@@ -51,9 +53,11 @@ class GetFromInsta(APIView):
         if not images:
             return Response({"error": "No images found in the Instagram post"}, status=status.HTTP_404_NOT_FOUND)
 
-        formatted_response = self.format_response(data, images)
+        # Fetch caption and clean it
+        raw_caption = data.get("caption", {}).get("text", "")
+        cleaned_caption = clean_caption(raw_caption)
 
-        variants = self.get_dummy_variants()  # Replace with actual logic to get variants
+        variants = generate_data(caption=cleaned_caption)  # logic to get variants
 
         # Process and save the fetched data
         with transaction.atomic():
@@ -61,7 +65,7 @@ class GetFromInsta(APIView):
             self.create_products_and_variants(post_obj, variants)
             self.save_images_to_database(images, post_obj)
 
-        return Response(formatted_response, status=status.HTTP_200_OK)
+        return Response({"msg": "Add successfully"}, status=status.HTTP_201_CREATED)
 
     def extract_images(self, data):
         return [image["image_versions2"]["candidates"][3]["url"] for image in data.get("carousel_media", [])]
@@ -129,35 +133,6 @@ class GetFromInsta(APIView):
             except requests.RequestException as e:
                 pass
                 # logger.error(f"Failed to download image: {image_url}, Error: {e}")  # noqa : G004
-
-    def get_dummy_variants(self):
-        # Replace this method with actual logic to fetch or create variants
-        return [
-            {
-                "name": "pirahan tak",
-                "price": 1500,
-                "options": {
-                    "colors": ["abi", "ghermz", "sabz"],
-                    "sizes": ["L", "XL", "XXL"],
-                },
-            },
-            {
-                "name": "pirahan o shalvar",
-                "price": 2500,
-                "options": {
-                    "colors": ["abi o ghermez", "ghermz meshki", "sabz o ghermez"],
-                    "sizes": ["L 32", "XL 36", "XXL 38"],
-                },
-            },
-            {
-                "name": "shalvar",
-                "price": 1800,
-                "options": {
-                    "colors": ["abi", "meshki"],
-                    "sizes": ["32", "36", "38"],
-                },
-            },
-        ]
 
 
 class PostList(APIView):
