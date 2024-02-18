@@ -44,9 +44,10 @@ class GetFromInsta(APIView):
         if not shortcode:
             return Response({"error": "Shortcode parameter is missing"}, status=status.HTTP_400_BAD_REQUEST)
 
-        instagram_api = InstagramFetchStrategyFactory()
-        data = instagram_api.fetch_data(shortcode)
-        if data is None:
+        try:
+            instagram_api = InstagramFetchStrategyFactory()
+            data = instagram_api.fetch_data(shortcode)
+        except Exception:
             return Response({"error": "Failed to fetch Instagram data"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
         images = self.extract_images(data)
@@ -58,6 +59,9 @@ class GetFromInsta(APIView):
         cleaned_caption = clean_caption(raw_caption)
 
         variants = generate_data(caption=cleaned_caption)  # logic to get variants
+
+        if variants is None:
+            return Response({"error": "GPT is down"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
         # Process and save the fetched data
         with transaction.atomic():
