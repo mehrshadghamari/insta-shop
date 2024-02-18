@@ -11,7 +11,7 @@ from helpers.pydantic.models import Product
 
 
 def generate_data(caption: str, max_attempts: int = 3) -> Union[List[Dict[str, Any]], None]:
-    api_key = "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"
+    api_key = "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"
     client = OpenAI(api_key=api_key)
     attempts = 0
 
