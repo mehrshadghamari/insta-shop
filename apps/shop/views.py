@@ -22,6 +22,7 @@ from apps.shop.serializers import PostUpdateSerializer
 from apps.shop.serializers import ProductCreateSerializer
 from apps.shop.serializers import ProductUpdateSerializer
 from helpers.caches import cache_handler
+from helpers.chat_gpt.gpt_api import generate_data
 from helpers.instagram_APIs import InstagramFetchStrategyFactory
 from helpers.utils import extract_shortcode
 from helpers.utils import generate_unique_filename

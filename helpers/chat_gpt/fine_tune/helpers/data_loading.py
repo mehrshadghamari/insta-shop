@@ -1,5 +1,6 @@
 import json
 
+
 def load_dataset(data_path):
     """
     Load dataset from a JSONL file with error handling.
