@@ -30,46 +30,58 @@ from helpers.utils import extract_shortcode
 from helpers.utils import generate_unique_filename
 
 # Configure logging
-# logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class GetFromInsta(APIView):
     def post(self, request):
         shop = self.request.shop
         if not shop:
+            logger.error("Shop ID is missing from the request.")
             return Response({"error": "Shop ID is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         post_url = request.data.get("post_url")
         shortcode = extract_shortcode(post_url)
         if not shortcode:
+            logger.error("Shortcode extraction failed from the provided URL.")
             return Response({"error": "Shortcode parameter is missing"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             instagram_api = InstagramFetchStrategyFactory()
             data = instagram_api.fetch_data(shortcode)
         except Exception:
+            logger.error(f"Failed to fetch Instagram data for shortcode {shortcode}: {e}")
             return Response({"error": "Failed to fetch Instagram data"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
         images = self.extract_images(data)
         if not images:
+            logger.error(f"No images found in the Instagram post for shortcode {shortcode}.")
             return Response({"error": "No images found in the Instagram post"}, status=status.HTTP_404_NOT_FOUND)
 
         # Fetch caption and clean it
         raw_caption = data.get("caption", {}).get("text", "")
         cleaned_caption = clean_caption(raw_caption)
 
-        variants = generate_data(caption=cleaned_caption)  # logic to get variants
 
-        if variants is None:
-            return Response({"error": "GPT is down"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        gpt_response, gpt_status = generate_data(caption=cleaned_caption)
+        if gpt_status != status.HTTP_200_OK:
+            return Response({"error": gpt_response["error"],"gpt_status":gpt_status,"type":"GPT"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+        variants = gpt_response  # Assuming gpt_response is the list of dictionaries with product data
 
         # Process and save the fetched data
-        with transaction.atomic():
-            post_obj = self.create_post(shop, post_url, data)
-            self.create_products_and_variants(post_obj, variants)
-            self.save_images_to_database(images, post_obj)
+        try:
+            with transaction.atomic():
+                post_obj = self.create_post(shop, post_url, data)
+                self.create_products_and_variants(post_obj, variants)
+                self.save_images_to_database(images, post_obj)
+        except Exception as e:
+            logger.error(f"Failed to process and save fetched data: {e}")
+            return Response({"error": "Failed to process Instagram post data"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        return Response({"msg": "Add successfully"}, status=status.HTTP_201_CREATED)
+        logger.info(f"Instagram post data successfully processed and saved for shortcode {shortcode}.")
+        return Response({"msg": "Added successfully"}, status=status.HTTP_201_CREATED)
+    
 
     def extract_images(self, data):
         return [image["image_versions2"]["candidates"][3]["url"] for image in data.get("carousel_media", [])]
