@@ -17,6 +17,11 @@ def extract_shortcode(post_url):
         return post_url.split("/")[4]
     except IndexError:
         return None
+    
+
+def generate_unique_filename(username):
+    """Generate a unique file name for an image."""
+    return f"image-shop:{username}-imgID:{uuid.uuid4().hex}-time:{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
 
 
 def clean_caption(caption: str) -> str:
