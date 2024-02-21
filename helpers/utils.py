@@ -4,12 +4,12 @@ from datetime import datetime
 
 import emoji
 
-
 # Compile regular expressions for efficiency if the function is called frequently
-phone_number_regex = re.compile(r"\b(?:0|\u06F0)(?:9|\u06F9)[\d\u06F0-\u06F9]{9}\b|\b(?:0|\u06F0)[\d\u06F0-\u06F9]{10,11}\b")
+phone_number_regex = re.compile(
+    r"\b(?:0|\u06F0)(?:9|\u06F9)[\d\u06F0-\u06F9]{9}\b|\b(?:0|\u06F0)[\d\u06F0-\u06F9]{10,11}\b"
+)
 hashtag_regex = re.compile(r"#\S+")
 extra_spaces_regex = re.compile(r"\s+")
-
 
 
 def extract_shortcode(post_url):
@@ -17,7 +17,7 @@ def extract_shortcode(post_url):
         return post_url.split("/")[4]
     except IndexError:
         return None
-    
+
 
 def generate_unique_filename(username):
     """Generate a unique file name for an image."""
@@ -37,7 +37,7 @@ def clean_caption(caption: str) -> str:
     """
     # Remove emojis using the emoji library
     caption = emoji.replace_emoji(caption, replace="")
-    
+
     # Remove phone numbers (standard and Persian digits)
     caption = phone_number_regex.sub("", caption)
 

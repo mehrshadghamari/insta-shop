@@ -1,18 +1,16 @@
 import json
+import logging
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import Union
-from pydantic import ValidationError
-import logging
-import requests
-from rest_framework import status
 
+import requests
 from openai import OpenAI
 from pydantic import ValidationError
+from rest_framework import status
 
 from helpers.pydantic.models import Product
-
 
 logger = logging.getLogger(__name__)
 
@@ -43,10 +41,14 @@ def generate_data(caption: str, max_attempts: int = 3):
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 401:
                 logger.error("Unauthorized access to GPT API. Please check your API key.")
-                return {"error": "Unauthorized access to GPT API. Please check your API key."}, status.HTTP_401_UNAUTHORIZED
+                return {
+                    "error": "Unauthorized access to GPT API. Please check your API key."
+                }, status.HTTP_401_UNAUTHORIZED
             else:
                 logger.error(f"HTTP error occurred: {e}")
-                return {"error": f"An error occurred while accessing GPT API: {e}"}, status.HTTP_500_INTERNAL_SERVER_ERROR
+                return {
+                    "error": f"An error occurred while accessing GPT API: {e}"
+                }, status.HTTP_500_INTERNAL_SERVER_ERROR
         except json.JSONDecodeError:
             logger.error("Failed to decode the response from GPT API.")
             if attempts == max_attempts:
@@ -56,12 +58,12 @@ def generate_data(caption: str, max_attempts: int = 3):
             return {"error": f"Data validation error: {e}"}, status.HTTP_400_BAD_REQUEST
         except Exception as e:
             logger.error(f"An unexpected error occurred: {e}")
-            return {"error": "An unexpected error occurred while generating data."}, status.HTTP_500_INTERNAL_SERVER_ERROR
+            return {
+                "error": "An unexpected error occurred while generating data."
+            }, status.HTTP_500_INTERNAL_SERVER_ERROR
 
     logger.error("Maximum attempts reached. No valid data received.")
     return {"error": "Maximum attempts reached. No valid data received."}, status.HTTP_500_INTERNAL_SERVER_ERROR
-
-
 
 
 # def generate_data(caption: str, max_attempts: int = 3) -> Union[List[Dict[str, Any]], None]:
@@ -100,7 +102,3 @@ def generate_data(caption: str, max_attempts: int = 3):
 
 #     print("Maximum attempts reached. No valid data received.")
 #     return None  # Return None if valid data could not be obtained after max_attempts
-
-
-
-

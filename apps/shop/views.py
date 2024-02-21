@@ -62,10 +62,12 @@ class GetFromInsta(APIView):
         raw_caption = data.get("caption", {}).get("text", "")
         cleaned_caption = clean_caption(raw_caption)
 
-
         gpt_response, gpt_status = generate_data(caption=cleaned_caption)
         if gpt_status != status.HTTP_200_OK:
-            return Response({"error": gpt_response["error"],"gpt_status":gpt_status,"type":"GPT"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            return Response(
+                {"error": gpt_response["error"], "gpt_status": gpt_status, "type": "GPT"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
 
         variants = gpt_response  # Assuming gpt_response is the list of dictionaries with product data
 
@@ -77,11 +79,12 @@ class GetFromInsta(APIView):
                 self.save_images_to_database(images, post_obj)
         except Exception as e:
             logger.error(f"Failed to process and save fetched data: {e}")
-            return Response({"error": "Failed to process Instagram post data"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"error": "Failed to process Instagram post data"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
         logger.info(f"Instagram post data successfully processed and saved for shortcode {shortcode}.")
         return Response({"msg": "Added successfully"}, status=status.HTTP_201_CREATED)
-    
 
     def extract_images(self, data):
         return [image["image_versions2"]["candidates"][3]["url"] for image in data.get("carousel_media", [])]
