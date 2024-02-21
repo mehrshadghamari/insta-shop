@@ -165,7 +165,7 @@ class PostList(APIView):
         # Try to get data from cache
         data = cache_handler.get(cache_key)
         if not data:
-            query = Post.objects.filter(shop=shop_id).prefetch_related("images")
+            query = Post.objects.filter(shop=shop_id).prefetch_related("images").order_by("-updated_at")
             serializer = PostListSerializer(query, many=True, context={"request": request})
             data = serializer.data
             cache_handler.set(cache_key, data, cache_time)
