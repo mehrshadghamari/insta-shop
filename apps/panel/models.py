@@ -93,9 +93,10 @@ class User(AbstractBaseUser, PermissionsMixin):
             "unique": ("A user with that username already exists."),
         },
     )
-    first_name = models.CharField(max_length=80)
-    last_name = models.CharField(max_length=80)
+    first_name = models.CharField(max_length=80, null=True)
+    last_name = models.CharField(max_length=80, null=True)
     national_code = models.CharField(max_length=10, unique=True, null=True, validators=[national_code_validator])
+    otp_code = models.IntegerField(null=True)
 
     email = models.EmailField(("email address"), unique=True, null=True, blank=True)
     phone_number = models.BigIntegerField(
@@ -148,9 +149,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         return f"{str(self.phone_number)} - {self.full_name} "
 
 
-class UserProfile(User):
-    pass
-    # user = models.OneToOneField(User, on_delete=models.CASCADE)
+# class UserProfile(User):
+#     pass
+# user = models.OneToOneField(User, on_delete=models.CASCADE)
 
 
 class Shop(TimeStampedModel):
@@ -161,8 +162,8 @@ class Shop(TimeStampedModel):
 
 
 class ShopUser(TimeStampedModel):
-    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
-    shop = models.ForeignKey(Shop, on_delete=models.CASCADE, related_name="admins")
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    shop = models.ForeignKey(Shop, null=True, on_delete=models.CASCADE, related_name="admins")
     is_owner = models.BooleanField(default=False)
     is_manager = models.BooleanField(default=False)
 
@@ -175,7 +176,7 @@ class ShopUser(TimeStampedModel):
 
 
 class Customer(TimeStampedModel):
-    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE, related_name="customers")
 
     class Meta:
@@ -183,6 +184,13 @@ class Customer(TimeStampedModel):
 
     def __str__(self):
         return f"{self.user.username} in {self.shop}"
+
+
+class CustomerInfo(TimeStampedModel):
+    user = models.OneToOneField(Customer, on_delete=models.CASCADE, related_name="info")
+    first_name = models.CharField(max_length=80)
+    last_name = models.CharField(max_length=80)
+    national_code = models.CharField(max_length=10, unique=True, null=True, validators=[national_code_validator])
 
 
 class ShopInfo(TimeStampedModel):
